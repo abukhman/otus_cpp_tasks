@@ -1,8 +1,9 @@
-name: Otus cpp tasks
+name: Otus main
 on:
   push:
     branches:
       - task_01
+      - main
 
 jobs:
   build:
