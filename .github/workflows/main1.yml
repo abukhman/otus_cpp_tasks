@@ -1,0 +1,14 @@
+name: Otus cpp tasks
+on:
+  push:
+    branches:
+      - task_01
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: First print
+        run: echo "Start!"
+        run: gcc --version
