@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - task_01
+      - main
 
 jobs:
   build:
