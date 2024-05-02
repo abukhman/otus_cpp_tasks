@@ -1,0 +1,17 @@
+name: 'Task 01'
+
+on:
+  push:
+    branches:
+      - task_01
+  workflow_dispatch:
+
+job:
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - run: echo "Checkout code"
+
