@@ -2,7 +2,7 @@ name: Otus cpp tasks
 on:
   push:
     branches:
-      task_01
+      - task_01
 
 jobs:
   build:
