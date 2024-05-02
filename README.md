@@ -1,1 +1,3 @@
-# otus_cpp_advansed
+# Первое задание по курсу
+
+CI/CD
