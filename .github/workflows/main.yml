@@ -14,7 +14,7 @@ jobs:
         run: echo "Start!"
       - name: Checkout
         uses: actions/checkout@v4
-      - run: gcc main.cpp -o helloworld
+      - run: g++ main.cpp -o helloworld
       - name: Create Release
         id: release
         uses: actions/create-release@v1
@@ -32,6 +32,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./helloworld-0.1.${{ github.run_number }}-Linux.deb
-          asset_name: helloworld-0.1.${{ github.run_number }}-Linux.deb
+          asset_path: ./mytest-0.1.${{ github.run_number }}-Linux.deb
+          asset_name: mytest-0.1.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
