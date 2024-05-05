@@ -1,0 +1,33 @@
+name: Otus Task 01
+on:
+  push:
+    branches:
+      - task_01
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - run: g++ main.cpp -o helloworld
+      - name: Create Release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: ./mytest-0.1.${{ github.run_number }}-Linux.deb
+          asset_name: mytest-0.1.${{ github.run_number }}-Linux.deb
+          asset_content_type: application/vnd.debian.binary-package
