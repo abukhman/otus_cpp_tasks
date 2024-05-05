@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - run: cmake .
+      - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
       - run: cmake --build . --target package
       - name: Create Release
         id: release
