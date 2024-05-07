@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 3.16)
+
+set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
+
+project(myproj VERSION ${LOCAL_PROJECT_VERSION})
+
+add_executable(myproj_cli main.cpp)
+
+set_target_properties(myproj_cli PROPERTIES
+	CXX_STANDARD 14
+	CXX_STANDARD_REQUIRED ON
+)
+
+install(TARGETS myproj_cli RUNTIME DESTINATION bin)
+
+set(CPACK_GENERATOR DEB)
+set(CPACK_PACKAGE_CONTACT antvbx@gmail.com)
+
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+
+include(CPack)
+
