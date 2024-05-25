@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.16)
 
 set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
 
-project(myproj VERSION ${LOCAL_PROJECT_VERSION})
+project(ip_filter VERSION ${LOCAL_PROJECT_VERSION})
 
-add_executable(myproj_cli main.cpp)
+add_executable(ip_filter ip_filter.cpp)
 
-set_target_properties(myproj_cli PROPERTIES
+set_target_properties(ip_filter PROPERTIES
 	CXX_STANDARD 14
 	CXX_STANDARD_REQUIRED ON
 )
 
-install(TARGETS myproj_cli RUNTIME DESTINATION bin)
+install(TARGETS ip_filter RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_CONTACT antvbx@gmail.com)
