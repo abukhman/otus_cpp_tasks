@@ -2,7 +2,7 @@ name: Otus Task 01
 on:
   push:
     branches:
-      - task_01
+      - task_03
 
 jobs:
   build:
