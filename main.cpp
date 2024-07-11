@@ -33,5 +33,8 @@ int main (int, char **) {
     M.add(1);
     M.add(2);
 
+    my_container<int, my_allocator<int>> M1;
+    M1.add(1);
+    M1.add(2);
     return 0;
 }
