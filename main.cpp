@@ -1,5 +1,6 @@
 #include <iostream>
 #include "alloc.h"
+#include "container.h"
 #include <map>
 
 using namespace std;
@@ -28,6 +29,9 @@ int main (int, char **) {
     fill_map(map2);
     print_map(map2);
 
+    my_container<int> M;
+    M.add(1);
+    M.add(2);
 
     return 0;
 }
