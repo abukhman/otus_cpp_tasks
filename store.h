@@ -33,10 +33,11 @@ class Store {
   }
 
   void flush() {
-    if (buffer.empty()) return;
-    _l<<"Commands:";
+    if (buffer.empty() || (level > 0)) return;
+    _l<<"bulk: "<<buffer.front();
+    buffer.pop();
     while (!buffer.empty()) {
-      _l<<" "<<buffer.front();
+      _l<<", "<<buffer.front();
       buffer.pop();
     }
     _l.flush();
