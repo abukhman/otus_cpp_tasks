@@ -1,40 +1,41 @@
 #include <iostream>
-#include "alloc.h"
-#include "container.h"
-#include <map>
+#include <string>
+#include "store.h"
 
-using namespace std;
 
-template<class T>
-void fill_map(T& arg) {
-    int fact = 1;
-    for (auto i = 0; i < 10; i++) {
-      fact *= i == 0 ? 1 : i;
-      arg[i] = fact;
-    }	
-}
+int main (int argc, const char *argv[]) {
+  if (argc != 2) {
+    std::cout<<"Usage: "<<argv[0]<<" N"<<std::endl;
+    std::cout<<"  N - buffer capacity."<<std::endl;
+    return -1;
+  }
+  int N;
+  try {
+    N = std::stoi(std::string(argv[1]));
+  }
+  catch (std::invalid_argument const& ex) {
+    std::cout << "std::invalid_argument::what(): " << ex.what() << std::endl;
+    return -1;
+  }
+  catch (std::out_of_range const& ex) {
+    std::cout << "std::out_of_range::what(): " << ex.what() << std::endl;
+    return -1;
+  }
+  if (N <= 0) {
+	  std::cout<<"N should be positive integer"<<std::endl;
+    return -1;
+  }
 
-template<class T>
-void print_map(T& arg) {
-    for (auto it = arg.begin(); it != arg.end(); it++) {
-      cout<<it->first<<" "<<it->second<<endl;
+  std::string input_line;
+  Store s(N);
+
+  while(std::cin>>input_line) {
+    if (input_line == "{") {
+      s.open_block();
+    } else if (input_line == "}"){
+      s.close_block();
+    } else {
+      s.add(input_line);
     }
-}
-
-int main (int, char **) {
-    std::map<int, int> map1;
-    fill_map(map1);
-
-    std::map<int, int, std::less<int>, my_allocator<std::pair<int, int>>> map2;
-    fill_map(map2);
-    print_map(map2);
-
-    my_container<int> M;
-    M.add(1);
-    M.add(2);
-
-    my_container<int, my_allocator<int>> M1;
-    M1.add(1);
-    M1.add(2);
-    return 0;
+  }
 }

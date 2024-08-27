@@ -3,20 +3,19 @@ cmake_minimum_required(VERSION 3.16)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
 
-project(allocator VERSION ${LOCAL_PROJECT_VERSION})
+project(bulk VERSION ${LOCAL_PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
-add_executable(allocator_cli main.cpp)
+add_executable(bulk main.cpp)
 
-set_target_properties(allocator_cli PROPERTIES
+set_target_properties(bulk PROPERTIES
 	CXX_STANDARD 17
 	CXX_STANDARD_REQUIRED ON
 )
 
-#target_link_libraries(helloworld_cli mylibversion)
 
-install(TARGETS allocator_cli RUNTIME DESTINATION bin)
+install(TARGETS bulk RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_CONTACT antvbx@gmail.com)
