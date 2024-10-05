@@ -7,15 +7,19 @@ project(bulk VERSION ${LOCAL_PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
-add_executable(bulk main.cpp)
+add_library(async SHARED ctx.cpp)
 
-set_target_properties(bulk PROPERTIES
+add_executable(test_async main.cpp)
+target_link_libraries(test_async PRIVATE async)
+
+set_target_properties(test_async PROPERTIES
 	CXX_STANDARD 17
 	CXX_STANDARD_REQUIRED ON
 )
 
 
-install(TARGETS bulk RUNTIME DESTINATION bin)
+install(TARGETS test_async RUNTIME DESTINATION bin)
+install(TARGETS async LIBRARY DESTINATION lib)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_CONTACT antvbx@gmail.com)

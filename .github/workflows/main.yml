@@ -1,8 +1,8 @@
-name: Otus Task 07
+name: Otus Task 09
 on:
   push:
     branches:
-      - task_07
+      - task_09
 
 jobs:
   build:
