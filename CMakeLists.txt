@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
 
-project(bulk VERSION ${LOCAL_PROJECT_VERSION})
+project(async VERSION ${LOCAL_PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
