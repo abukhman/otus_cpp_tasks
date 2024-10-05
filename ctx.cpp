@@ -135,7 +135,7 @@ unsigned connect(unsigned bs) {
     return GCM.add_ctx(bs);
 }
 
-int receive(unsigned ctx, const char *msg) {
+void receive(unsigned ctx, const char *msg) {
   auto& tmp = GCM[ctx];
   {
     std::lock_guard<std::mutex> lock(GCM.mtx);

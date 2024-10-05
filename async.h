@@ -1,6 +1,9 @@
+#ifndef __ASYNC_H_
+#define __ASYNC_H_
 
-int connect();
+unsigned connect(unsigned bs);
+void receive(unsigned ctx, const char *msg);
+void disconnect(unsigned ctx_id);
+void finilize_async();
 
-int receive(int, const char *);
-
-int disconnect(int);
+#endif // __ASYNC_H_
