@@ -31,7 +31,7 @@ class ContextManager {
   }
 };
 
-ContextManager GCM;
+static ContextManager GCM;
 
 // Queue
 struct Block {
@@ -67,13 +67,12 @@ void produce(queue<string> &q, uint64_t t) {
   swap(q, empty);
 }
 
+
+// Functions related to loggers
 void FileLogger() {
     while (true) {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [] { return !messageQueue.empty() || finished;});
-            //lock.unlock();
-            //cout << "File logger " << s << " " << message.q.size() << endl;
-            //lock.lock();
 	if (!messageQueue.empty()) {
           auto message = messageQueue.front();
           messageQueue.pop();
@@ -89,7 +88,7 @@ void FileLogger() {
 	  _File.close();
 	}
 
-        if (finished && messageQueue.empty()) break;  // Выходим, если производитель закончил
+        if (finished && messageQueue.empty()) break;
     }
 }
 
@@ -117,10 +116,6 @@ thread File2(FileLogger);
 thread Term(TermLogger);
 
 // Interface function
-
-void init_async() {
-
-}
 
 void finilize_async() {
   finished = true;
