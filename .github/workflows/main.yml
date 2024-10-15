@@ -11,6 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - run: sudo apt-get update
+      - run: sudo apt-get install libboost-all-dev
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
       - run: cmake --build . --target package
       - name: Create Release
