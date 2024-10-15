@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.16)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
 
-find_package(Boost COMPONENTS system REQUIRED)
-find_package(Threads)
-include_directories(${Boost_INCLUDE_DIR})
+#find_package(Boost COMPONENTS system REQUIRED)
+#find_package(Threads)
+#include_directories(${Boost_INCLUDE_DIR})
 
 project(async VERSION ${LOCAL_PROJECT_VERSION})
 
