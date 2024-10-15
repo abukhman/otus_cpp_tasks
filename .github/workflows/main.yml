@@ -1,8 +1,8 @@
-name: Otus Task 09
+name: Otus Task 10
 on:
   push:
     branches:
-      - task_09
+      - task_10
 
 jobs:
   build:
@@ -30,6 +30,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: ./async-0.0.${{ github.run_number }}-Linux.deb
-          asset_name: async-0.0.${{ github.run_number }}-Linux.deb
+          asset_path: ./bulk_server-0.0.${{ github.run_number }}-Linux.deb
+          asset_name: bulk_server-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
