@@ -7,7 +7,7 @@ set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
 #find_package(Threads)
 #include_directories(${Boost_INCLUDE_DIR})
 
-project(async VERSION ${LOCAL_PROJECT_VERSION})
+project(bulk_server VERSION ${LOCAL_PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
