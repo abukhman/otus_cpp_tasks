@@ -1,12 +1,13 @@
 template <class T>
 struct my_allocator {
     static const size_t kb = 100;
+    void * base;
     void * buf;
     int pos;
     size_t cur_size = 0;
     using value_type = T;
     my_allocator () noexcept {
-	    buf = malloc(kb * 1024);
+	    base = buf = malloc(kb * 1024);
 	    pos = 0;
 	    if (buf == nullptr) {
               cur_size = 0;
@@ -30,8 +31,8 @@ struct my_allocator {
 	    std::cout<<"deallocate "<<n<<std::endl;
     }
     ~my_allocator() noexcept {
-      if (buf != nullptr) {
-        free(buf);
+      if (base != nullptr) {
+        free(base);
       }
     }
 };
