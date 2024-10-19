@@ -1,145 +1,122 @@
-#include "block.h"
-
-#include <boost/algorithm/string/trim_all.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/detached.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/read_until.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/asio/streambuf.hpp>
-
 #include <iostream>
-#include <memory>
-#include <optional>
-#include <thread>
+#include <fstream>
+#include <sstream>
+#include <Eigen/Dense>
 
-int port;
-int bs;
+using namespace Eigen;
 
-namespace asio = boost::asio;
-using tcp = asio::ip::tcp;
-
-namespace {
-
-class Connection : public std::enable_shared_from_this<Connection> {
- public:
-  explicit Connection(tcp::socket socket) : m_socket{std::move(socket)}, m_block(bs) {}
-
-  Connection(const Connection &) = delete;
-  Connection(Connection &&) = delete;
-
-  ~Connection() {
-    try {
-      std::cout << std::this_thread::get_id() << " Client \"" << m_clientName
-                << "\": Disconnected." << std::endl;
-    } catch (...) {
-      assert(false);
-    }
-  }
-
-  Connection &operator=(const Connection &) = delete;
-  Connection &operator=(Connection &&) = delete;
-
-  void startReading() {
-    auto self = shared_from_this();
-
-    asio::async_read_until(
-        m_socket, m_buffer, "\n",
-        [this, self](const boost::system::error_code error,
-                     const std::size_t length) { handleRead(error, length); });
-  }
-
- private:
-  void handleRead(const boost::system::error_code error,
-                  const std::size_t length) {
-    if (error) {
-      std::cout << std::this_thread::get_id() << " Client \"" << m_clientName
-                << "\": Reading error: \"" << error << "\"." << std::endl;
-      return;
+MatrixXd loadMatrix(const std::string &filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        exit(1);
     }
 
-    if (length != 0) {
-      handleData(length);
-      m_buffer.consume(length);
-    }
+    // Read the matrix from the file
+    std::vector<std::vector<double>> data;
+    std::string line;
 
-    startReading();
-  }
-
-  void handleData(const std::size_t length) {
-    const std::string_view logRecord{
-        asio::buffer_cast<const char *>(m_buffer.data()), length};
-
-    m_block.add(logRecord);
-  }
-
-  tcp::socket m_socket;
-  boost::asio::streambuf m_buffer;
-
-  std::string m_clientName;
-  Block m_block;
-  std::vector<std::string> block_buffer;
-};
-
-void accept(tcp::acceptor &acceptor) {
-  acceptor.async_accept(
-      [&acceptor](const boost::system::error_code error, tcp::socket socket) {
-        if (!error) {
-          const std::shared_ptr<Connection> connection{
-              new Connection{std::move(socket)}};
-          connection->startReading();
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::vector<double> row;
+        double value;
+        while (iss >> value) {
+            row.push_back(value);
         }
-
-        accept(acceptor);
-      });
+        data.push_back(row);
+    }
+    
+    // Определяем размеры матрицы
+    int rows = data.size();
+    int cols = data.empty() ? 0 : data[0].size();
+    
+    MatrixXd mat(rows, cols);
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            mat(i, j) = data[i][j];
+        }
+    }
+    file.close();
+    return mat;
 }
 
-void runServer() {
-  std::cout << std::this_thread::get_id() << " Running server..." << std::endl;
+MatrixXd loadMatrixU(const std::string &filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        exit(1);
+    }
 
-  asio::io_context ioContext;
+    // Read the matrix from the file
+    std::vector<std::vector<unsigned>> data;
+    std::string line;
 
-  std::cout << std::this_thread::get_id() << " Listing TCP v4 port " << port
-            << " for new log clients..." << std::endl;
-
-  tcp::acceptor acceptor{ioContext, tcp::endpoint(tcp::v4(), port)};
-  accept(acceptor);
-
-  asio::signal_set signals{ioContext, SIGINT, SIGTERM};
-  signals.async_wait([&](auto, auto) { ioContext.stop(); });
-
-  std::vector<std::thread> threads;
-  const auto nThreads = std::thread::hardware_concurrency();
-  threads.reserve(nThreads);
-  for (unsigned int i = 0; i < nThreads; ++i) {
-    threads.emplace_back([&ioContext]() { ioContext.run(); });
-  }
-  for (auto &th : threads) {
-    th.join();
-  }
-
-  std::cout << std::this_thread::get_id() << " Server stopped." << std::endl;
+    while (std::getline(file, line)) {
+	std::replace(line.begin(), line.end(), ',', ' ');
+        std::istringstream iss(line);
+        std::vector<unsigned> row;
+        unsigned value;
+        while (iss >> value) {
+            row.push_back(value);
+        }
+        data.push_back(row);
+    }
+    
+    // Определяем размеры матрицы
+    int rows = data.size();
+    int cols = data.empty() ? 0 : data[0].size();
+    
+    MatrixXd mat(rows, cols);
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            mat(i, j) = data[i][j];
+        }
+    }
+    file.close();
+    return mat;
 }
 
-}  // namespace
+int main(int argc, char *argv[]) {
+    // Load matrix and vector
+    if (argc != 3) {
+      std::cerr << "Usage: " << argv[0]
+	  << "test.csv logreg_coef.txt" << std::endl;
+    }
+    MatrixXd coeff = loadMatrix(argv[2]);
+    MatrixXd samples = loadMatrixU(argv[1]);
+    std::vector<double> results;
 
-int main(int argc, char* argv[])
-{
-  if (argc != 3) {
-    std::cout<<"Usage " << argv[0] << " <port> <block size>" <<std::endl;
-    return -1;
-  }
-  port = std::stoi(argv[1]);
-  bs = std::stoi(argv[2]);
-  try {
-    runServer();
-    return EXIT_SUCCESS;
-  } catch (const std::exception &ex) {
-    std::cerr << "Fatal error \"" << ex.what() << "\"." << std::endl;
-  } catch (...) {
-    std::cerr << "Fatal UNKNOWN error." << std::endl;
-  }
+    //MatrixXd res(rows, cols);
+    for (unsigned i=0; i < samples.rows(); i++) {
+      results.push_back(samples(i, 0));
+      for(unsigned j=1; j < samples.cols(); j++) {
+        samples(i, j) /= 256;
+      }
+      samples(i, 0) = 1.0;
+    }
 
-  return EXIT_FAILURE;
+    if (coeff.cols() != samples.cols()) {
+        std::cerr << "Matrix and vector dimensions do not match for multiplication!" << std::endl;
+        return 1;
+    }
+
+    MatrixXd result = coeff * samples.transpose();
+
+    unsigned eq = 0;
+    for(unsigned i = 0; i < result.cols(); i++)
+    {
+      int argmax = 0;
+      double maxval = result(0, i);
+      for(unsigned j = 0; j < result.rows(); j++) {
+	      if(result(j,i) > maxval) {
+	        argmax = j;
+		maxval = result(j,i);
+	      }
+      }
+      if (argmax == results[i]) {
+        eq++;
+      }
+    }
+    std::cout << 1.0 * eq / results.size()  << std::endl;
+    return 0;
 }
