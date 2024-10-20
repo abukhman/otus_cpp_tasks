@@ -11,7 +11,7 @@ project(join_server VERSION ${LOCAL_PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
-add_executable(join_server main.cpp block.cpp)
+add_executable(join_server main.cpp)
 
 set_target_properties(join_server PROPERTIES
 	CXX_STANDARD 17
