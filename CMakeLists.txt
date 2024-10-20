@@ -7,22 +7,22 @@ set(LOCAL_PROJECT_VERSION "0.0.${PATCH_VERSION}")
 #find_package(Threads)
 #include_directories(${Boost_INCLUDE_DIR})
 
-project(bulk_server VERSION ${LOCAL_PROJECT_VERSION})
+project(join_server VERSION ${LOCAL_PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
-add_executable(bulk_server main.cpp block.cpp)
+add_executable(join_server main.cpp block.cpp)
 
-set_target_properties(bulk_server PROPERTIES
+set_target_properties(join_server PROPERTIES
 	CXX_STANDARD 17
 	CXX_STANDARD_REQUIRED ON
 )
 
-target_link_libraries(bulk_server
+target_link_libraries(join_server
         ${Boost_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT})
 
-install(TARGETS bulk_server RUNTIME DESTINATION bin)
+install(TARGETS join_server RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_CONTACT antvbx@gmail.com)

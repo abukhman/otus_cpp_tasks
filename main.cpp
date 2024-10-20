@@ -1,145 +1,72 @@
-#include "block.h"
-
-#include <boost/algorithm/string/trim_all.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/detached.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/read_until.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/asio/streambuf.hpp>
-
 #include <iostream>
-#include <memory>
-#include <optional>
-#include <thread>
-
-int port;
-int bs;
-
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/read_until.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/write.hpp>
+#include <boost/asio/streambuf.hpp>
+#include "Server.h"
 namespace asio = boost::asio;
-using tcp = asio::ip::tcp;
+using asio::ip::tcp;
 
-namespace {
-
-class Connection : public std::enable_shared_from_this<Connection> {
- public:
-  explicit Connection(tcp::socket socket) : m_socket{std::move(socket)}, m_block(bs) {}
-
-  Connection(const Connection &) = delete;
-  Connection(Connection &&) = delete;
-
-  ~Connection() {
-    try {
-      std::cout << std::this_thread::get_id() << " Client \"" << m_clientName
-                << "\": Disconnected." << std::endl;
-    } catch (...) {
-      assert(false);
-    }
-  }
-
-  Connection &operator=(const Connection &) = delete;
-  Connection &operator=(Connection &&) = delete;
-
-  void startReading() {
-    auto self = shared_from_this();
-
-    asio::async_read_until(
-        m_socket, m_buffer, "\n",
-        [this, self](const boost::system::error_code error,
-                     const std::size_t length) { handleRead(error, length); });
-  }
-
- private:
-  void handleRead(const boost::system::error_code error,
-                  const std::size_t length) {
-    if (error) {
-      std::cout << std::this_thread::get_id() << " Client \"" << m_clientName
-                << "\": Reading error: \"" << error << "\"." << std::endl;
-      return;
+class EchoServer : public std::enable_shared_from_this<EchoServer> {
+public:
+    EchoServer(tcp::socket socket)
+        : m_socket{std::move(socket)} {
     }
 
-    if (length != 0) {
-      handleData(length);
-      m_buffer.consume(length);
+    void start_read() {
+        auto self = shared_from_this();
+        asio::async_read_until(m_socket, buffer_, '\n',
+            [this, self](std::error_code ec, std::size_t length) mutable {
+                if (!ec) {
+                    std::string msg(asio::buffer_cast<const char*>(buffer_.data()), length);
+                    std::cout << "Received: " << msg;
+                    buffer_.consume(length);
+                    auto tmp = S_.parse_command(msg);
+                    start_write(tmp);
+		    //start_read();
+                }
+            });
     }
 
-    startReading();
-  }
+    void start_write(const std::string& msg) {
+        auto self = shared_from_this();
+        asio::async_write(m_socket, asio::buffer(msg),
+            [this, self](std::error_code ec, std::size_t lengsth) mutable {
+                if (!ec) {
+                    start_read();
+                }
+            });
+    }
 
-  void handleData(const std::size_t length) {
-    const std::string_view logRecord{
-        asio::buffer_cast<const char *>(m_buffer.data()), length};
-
-    m_block.add(logRecord);
-  }
-
-  tcp::socket m_socket;
-  boost::asio::streambuf m_buffer;
-
-  std::string m_clientName;
-  Block m_block;
-  std::vector<std::string> block_buffer;
+    tcp::socket m_socket;
+    asio::streambuf buffer_;
+    DBServer S_;
 };
 
 void accept(tcp::acceptor &acceptor) {
   acceptor.async_accept(
       [&acceptor](const boost::system::error_code error, tcp::socket socket) {
         if (!error) {
-          const std::shared_ptr<Connection> connection{
-              new Connection{std::move(socket)}};
-          connection->startReading();
+          const std::shared_ptr<EchoServer> connection{
+              new EchoServer{std::move(socket)}};
+          connection->start_read();
         }
-
         accept(acceptor);
       });
 }
+int main(int argc, char* argv[]) {
+    try {
+        asio::io_context io_context;
+        short port = argc > 1 ? std::atoi(argv[1]) : 12345;
+        //EchoServer server(io_context, port);
+	tcp::acceptor acceptor{io_context, tcp::endpoint(tcp::v4(), port)};
+	accept(acceptor);
 
-void runServer() {
-  std::cout << std::this_thread::get_id() << " Running server..." << std::endl;
-
-  asio::io_context ioContext;
-
-  std::cout << std::this_thread::get_id() << " Listing TCP v4 port " << port
-            << " for new log clients..." << std::endl;
-
-  tcp::acceptor acceptor{ioContext, tcp::endpoint(tcp::v4(), port)};
-  accept(acceptor);
-
-  asio::signal_set signals{ioContext, SIGINT, SIGTERM};
-  signals.async_wait([&](auto, auto) { ioContext.stop(); });
-
-  std::vector<std::thread> threads;
-  const auto nThreads = std::thread::hardware_concurrency();
-  threads.reserve(nThreads);
-  for (unsigned int i = 0; i < nThreads; ++i) {
-    threads.emplace_back([&ioContext]() { ioContext.run(); });
-  }
-  for (auto &th : threads) {
-    th.join();
-  }
-
-  std::cout << std::this_thread::get_id() << " Server stopped." << std::endl;
+        io_context.run();
+    } catch (std::exception& e) {
+        std::cerr << "Exception: " << e.what() << "\n";
+    }
+    return 0;
 }
 
-}  // namespace
-
-int main(int argc, char* argv[])
-{
-  if (argc != 3) {
-    std::cout<<"Usage " << argv[0] << " <port> <block size>" <<std::endl;
-    return -1;
-  }
-  port = std::stoi(argv[1]);
-  bs = std::stoi(argv[2]);
-  try {
-    runServer();
-    return EXIT_SUCCESS;
-  } catch (const std::exception &ex) {
-    std::cerr << "Fatal error \"" << ex.what() << "\"." << std::endl;
-  } catch (...) {
-    std::cerr << "Fatal UNKNOWN error." << std::endl;
-  }
-
-  return EXIT_FAILURE;
-}
